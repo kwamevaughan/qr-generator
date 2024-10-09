@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import QRCode from 'qrcode';
 import { supabase } from '/lib/supabaseClient';
+import Image from 'next/image';
 
 const QRCodeGenerator = ({ user }) => {
     const [url, setUrl] = useState('');
@@ -9,39 +10,29 @@ const QRCodeGenerator = ({ user }) => {
 
     const generateQrCode = async () => {
         try {
-            // Generate the QR code data from the provided URL
             const qrCodeData = await QRCode.toDataURL(url);
-            setQrCode(qrCodeData); // Temporarily set the QR code to show the original URL
+            setQrCode(qrCodeData);
 
-            // Save the QR code along with folder information in Supabase
             const { data: qrCodeDataResponse, error } = await supabase
                 .from('qr_codes')
                 .insert([{ user_id: user.id, url, qr_code_data: qrCodeData, folder }])
-                .select(); // Request the inserted data back
+                .select();
 
             if (error) {
                 console.error('Error saving QR code:', error);
-                return; // Exit if there's an error
+                return;
             }
 
-            // Log the response to see what is returned
-            console.log('Response from Supabase insert:', qrCodeDataResponse);
-
-            // Check if qrCodeDataResponse has data
             if (!qrCodeDataResponse || qrCodeDataResponse.length === 0) {
                 console.error('No data returned from the insert operation:', qrCodeDataResponse);
-                return; // Exit if no data is returned
+                return;
             }
 
-            // Create the logging URL with the QR code ID
-            const loggingUrl = `http://localhost:3001/api/redirect?id=${qrCodeDataResponse[0].id}`;
-            console.log('Logging URL:', loggingUrl); // Log the logging URL
+            const loggingUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/redirect?id=${qrCodeDataResponse[0].id}`;
+            console.log('Logging URL:', loggingUrl);
 
-            // Generate QR code for the logging URL
             const qrCodeForLogging = await QRCode.toDataURL(loggingUrl);
-            setQrCode(qrCodeForLogging); // Set the QR code with the logging URL
-
-            // Log the final QR code data URL
+            setQrCode(qrCodeForLogging);
             console.log('Generated QR Code Data URL:', qrCodeForLogging);
         } catch (error) {
             console.error('Failed to generate QR code:', error);
@@ -82,7 +73,13 @@ const QRCodeGenerator = ({ user }) => {
             {qrCode && (
                 <div className="mt-6 text-center">
                     <h3 className="text-lg font-semibold mb-2">Your QR Code:</h3>
-                    <img src={qrCode} alt="Generated QR Code" className="mx-auto" />
+                    <Image
+                        src={qrCode}
+                        alt="Generated QR Code"
+                        className="mx-auto"
+                        width={200} // Adjust width as needed
+                        height={200} // Adjust height as needed
+                    />
                     <a
                         href={qrCode}
                         download="qr-code.png"

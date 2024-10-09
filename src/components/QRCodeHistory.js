@@ -3,6 +3,7 @@ import { supabase } from '/lib/supabaseClient';
 import { Bar } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import Modal from './Modal';
+import Image from 'next/image';
 
 Chart.register(...registerables);
 
@@ -45,13 +46,13 @@ export default function QRCodeHistory({ userId }) {
         } else {
             setAnalyticsData(data);
             setLoadingAnalytics(false);
-            setIsModalOpen(true); // Open modal after fetching analytics
+            setIsModalOpen(true);
         }
     };
 
     const renderChart = () => {
         const labels = analyticsData.map(scan => new Date(scan.scanned_at).toLocaleString());
-        const scanCounts = analyticsData.map(() => 1); // Assuming each entry represents a scan
+        const scanCounts = analyticsData.map(() => 1);
 
         return {
             labels,
@@ -75,7 +76,13 @@ export default function QRCodeHistory({ userId }) {
                     <div key={qr.id} className="mb-4">
                         <h3 className="text-lg font-bold">{qr.folder || 'Uncategorized'}</h3>
                         <p>URL: {qr.url}</p>
-                        <img src={qr.qr_code_data} alt="QR Code" className="w-24 h-24"/>
+                        <Image
+                            src={qr.qr_code_data}
+                            alt="QR Code"
+                            width={96} // Adjust width as needed
+                            height={96} // Adjust height as needed
+                            className="w-24 h-24"
+                        />
                         <p>Created: {new Date(qr.created_at).toLocaleString()}</p>
                         <button
                             onClick={() => fetchScanAnalytics(qr.id)}
