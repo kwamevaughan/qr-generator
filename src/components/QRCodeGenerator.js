@@ -10,12 +10,13 @@ const QRCodeGenerator = ({ user }) => {
 
     const generateQrCode = async () => {
         try {
+            // Generate QR code for the original URL
             const qrCodeData = await QRCode.toDataURL(url);
-            setQrCode(qrCodeData);
 
+            // Insert the original URL into the database (this step is important for history)
             const { data: qrCodeDataResponse, error } = await supabase
                 .from('qr_codes')
-                .insert([{ user_id: user.id, url, qr_code_data: qrCodeData, folder }])
+                .insert([{ user_id: user.id, url, folder }])
                 .select();
 
             if (error) {
@@ -28,17 +29,31 @@ const QRCodeGenerator = ({ user }) => {
                 return;
             }
 
-            // Use the dynamic root domain
+            // Create the logging URL using the inserted QR code's ID
             const loggingUrl = `${window.location.origin}/api/redirect?id=${qrCodeDataResponse[0].id}`;
             console.log('Logging URL:', loggingUrl);
 
+            // Generate QR code for the logging URL (with the tracking `id`)
             const qrCodeForLogging = await QRCode.toDataURL(loggingUrl);
-            setQrCode(qrCodeForLogging);
-            console.log('Generated QR Code Data URL:', qrCodeForLogging);
+
+            // Update the database to save the logging QR code data
+            const { error: updateError } = await supabase
+                .from('qr_codes')
+                .update({ qr_code_data: qrCodeForLogging })
+                .eq('id', qrCodeDataResponse[0].id);
+
+            if (updateError) {
+                console.error('Error updating QR code data:', updateError);
+            } else {
+                // Set the correct QR code with the tracking URL for display and download
+                setQrCode(qrCodeForLogging);
+            }
         } catch (error) {
             console.error('Failed to generate QR code:', error);
         }
     };
+
+
 
     return (
         <div className="w-full max-w-md bg-white shadow-md rounded-lg p-8">
