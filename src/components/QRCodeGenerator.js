@@ -28,7 +28,8 @@ const QRCodeGenerator = ({ user }) => {
                 return;
             }
 
-            const loggingUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/redirect?id=${qrCodeDataResponse[0].id}`;
+            // Use the dynamic root domain
+            const loggingUrl = `${window.location.origin}/api/redirect?id=${qrCodeDataResponse[0].id}`;
             console.log('Logging URL:', loggingUrl);
 
             const qrCodeForLogging = await QRCode.toDataURL(loggingUrl);
