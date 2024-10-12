@@ -2,18 +2,17 @@ import { useState } from 'react';
 import QRCode from 'qrcode';
 import { supabase } from '/lib/supabaseClient';
 import Image from 'next/image';
+import { saveAs } from 'file-saver';
 
-const QRCodeGenerator = ({ user }) => {
+const QRCodeGenerator = ({ user, onQrCodeGenerated }) => {
     const [url, setUrl] = useState('');
     const [qrCode, setQrCode] = useState('');
     const [folder, setFolder] = useState('');
 
     const generateQrCode = async () => {
         try {
-            // Generate QR code for the original URL
             const qrCodeData = await QRCode.toDataURL(url);
 
-            // Insert the original URL into the database (this step is important for history)
             const { data: qrCodeDataResponse, error } = await supabase
                 .from('qr_codes')
                 .insert([{ user_id: user.id, url, folder }])
@@ -29,35 +28,75 @@ const QRCodeGenerator = ({ user }) => {
                 return;
             }
 
-            // Create the logging URL using the inserted QR code's ID
             const loggingUrl = `${window.location.origin}/api/redirect?id=${qrCodeDataResponse[0].id}`;
-            console.log('Logging URL:', loggingUrl);
-
-            // Generate QR code for the logging URL (with the tracking `id`)
+            // You can also pass the original URL back to the parent
+            onQrCodeGenerated(url); // Pass the URL to the parent component
             const qrCodeForLogging = await QRCode.toDataURL(loggingUrl);
+            const finalQrCodeWithLogo = await overlayLogo(qrCodeForLogging, '/assets/images/logo.png');
 
-            // Update the database to save the logging QR code data
             const { error: updateError } = await supabase
                 .from('qr_codes')
-                .update({ qr_code_data: qrCodeForLogging })
+                .update({ qr_code_data: finalQrCodeWithLogo })
                 .eq('id', qrCodeDataResponse[0].id);
 
             if (updateError) {
                 console.error('Error updating QR code data:', updateError);
             } else {
-                // Set the correct QR code with the tracking URL for display and download
-                setQrCode(qrCodeForLogging);
+                setQrCode(finalQrCodeWithLogo);
             }
         } catch (error) {
             console.error('Failed to generate QR code:', error);
         }
     };
 
+    const overlayLogo = (qrCodeDataUrl, logoUrl) => {
+        return new Promise((resolve, reject) => {
+            const qrImage = new window.Image();
+            const logoImage = new window.Image();
 
+            qrImage.src = qrCodeDataUrl;
+            logoImage.src = logoUrl;
+
+            Promise.all([
+                new Promise((res) => (qrImage.onload = res)),
+                new Promise((res) => (logoImage.onload = res)),
+            ]).then(() => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const qrSize = qrImage.width;
+
+                canvas.width = qrSize;
+                canvas.height = qrSize;
+
+                ctx.drawImage(qrImage, 0, 0, qrSize, qrSize);
+
+                const logoSize = qrSize / 5;
+                const logoX = (qrSize - logoSize) / 2;
+                const logoY = (qrSize - logoSize) / 2;
+                const padding = 5;
+
+                ctx.fillStyle = 'white';
+                ctx.fillRect(logoX - padding, logoY - padding, logoSize + 2 * padding, logoSize + 2 * padding);
+                ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
+
+                resolve(canvas.toDataURL());
+            }).catch(reject);
+        });
+    };
+
+    const downloadQRCode = (format) => {
+        if (!qrCode) return;
+
+        const link = document.createElement('a');
+        link.href = qrCode;
+        link.download = `qr-code.${format}`;
+        link.click();
+    };
 
     return (
         <div className="w-full max-w-md bg-white shadow-md rounded-lg p-8">
             <h2 className="text-lg font-bold text-center mb-4">Generate a QR Code</h2>
+
             <div className="mb-4">
                 <label className="block text-gray-700 mb-2">Enter URL</label>
                 <input
@@ -93,18 +132,42 @@ const QRCodeGenerator = ({ user }) => {
                         src={qrCode}
                         alt="Generated QR Code"
                         className="mx-auto"
-                        width={200} // Adjust width as needed
-                        height={200} // Adjust height as needed
+                        width={200}
+                        height={200}
                     />
-                    <a
-                        href={qrCode}
-                        download="qr-code.png"
-                        className="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-                    >
-                        Download QR Code
-                    </a>
+                    <DownloadButton qrCodeData={qrCode} onDownload={downloadQRCode} />
                 </div>
             )}
+        </div>
+    );
+};
+
+const DownloadButton = ({ qrCodeData, onDownload }) => {
+    return (
+        <div className="relative group inline-block mt-4">
+            <button className="bg-green-500 text-white px-4 py-2 rounded-lg">
+                Download QR Code
+            </button>
+            <div className="absolute hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg mt-1 w-24 z-10">
+                <button
+                    className="block w-full text-left px-2 py-1 hover:bg-gray-200"
+                    onClick={() => onDownload('png')}
+                >
+                    PNG
+                </button>
+                <button
+                    className="block w-full text-left px-2 py-1 hover:bg-gray-200"
+                    onClick={() => onDownload('svg')}
+                >
+                    SVG
+                </button>
+                <button
+                    className="block w-full text-left px-2 py-1 hover:bg-gray-200"
+                    onClick={() => onDownload('pdf')}
+                >
+                    PDF
+                </button>
+            </div>
         </div>
     );
 };
