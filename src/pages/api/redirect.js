@@ -14,13 +14,18 @@ export default async function handler(req, res) {
     const deviceType = parser.getDevice().model || 'Desktop';  // Improved detection
     const osType = parser.getOS().name || 'Unknown OS';        // Improved OS detection
 
-    const ipAddress = req.headers['x-forwarded-for']?.split(',').shift() || req.socket.remoteAddress;
+    // Use Cloudflare header to get real client IP
+    const ipAddress = req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',').shift() || req.socket.remoteAddress;
 
     // Geolocation API fetch
     const geoResponse = await fetch(`https://ipinfo.io/${ipAddress}/json?token=f7f86bdf4491ed`);
     const geoData = await geoResponse.json();
     const country = geoData.country || 'Unknown';
     const isp = geoData.org || 'Unknown';
+
+    // Logging for debugging
+    console.log('IP Address:', ipAddress);
+    console.log('Geo Data:', geoData);
 
     const { error } = await supabase
         .from('qr_code_scans')
