@@ -216,7 +216,7 @@ export default function QRCodeHistory({ userId, mode }) {
 
     return (
         <div
-            className={`mt-8 w-full max-w-4xl shadow-md rounded-lg p-8 ${mode === 'dark' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-black'}`}>
+            className={`mt-14 w-full max-w-4xl shadow-md rounded-lg p-8 ${mode === 'dark' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-black'}`}>
             <h2 className="text-lg font-bold text-center mb-4">QR Code History</h2>
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">Filter by Folder:</label>

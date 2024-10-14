@@ -1,6 +1,6 @@
 import '../styles/globals.css';
 import { useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function MyApp({ Component, pageProps }) {
@@ -39,6 +39,15 @@ function MyApp({ Component, pageProps }) {
     return (
         <div className={mode === 'dark' ? 'dark' : ''}>
             <Component {...pageProps} mode={mode} toggleMode={toggleMode} />
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                closeOnClick
+                pauseOnHover
+                draggable
+                theme={mode === 'dark' ? 'dark' : 'light'}
+            />
         </div>
     );
 }

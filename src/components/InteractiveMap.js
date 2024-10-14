@@ -14,9 +14,10 @@ const InteractiveMap = () => {
     const [hoveredCountry, setHoveredCountry] = useState(null);
     const [tooltipData, setTooltipData] = useState({ osType: '', deviceType: '', count: 0 });
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-    const [scale, setScale] = useState(1.5); // Initial zoom level
-    const [translate, setTranslate] = useState([-500, 0]); // Adjusted initial translation
+    const [scale, setScale] = useState(1.7); // Initial zoom level
+    const [translate, setTranslate] = useState([-800, -100]); // Adjusted initial translation
     const svgRef = useRef();
+    const tooltipRef = useRef(); // Reference for the tooltip
 
     const projection = geoMercator()
         .scale(150)
@@ -87,6 +88,7 @@ const InteractiveMap = () => {
     const handleDragStart = (event) => {
         event.preventDefault();
         const [startX, startY] = [event.clientX, event.clientY];
+        document.body.style.cursor = 'grabbing'; // Change cursor to grabbing
 
         const handleDrag = (e) => {
             const dx = e.clientX - startX;
@@ -95,6 +97,7 @@ const InteractiveMap = () => {
         };
 
         const handleDragEnd = () => {
+            document.body.style.cursor = 'grab'; // Reset cursor back to grab
             window.removeEventListener('mousemove', handleDrag);
             window.removeEventListener('mouseup', handleDragEnd);
         };
@@ -103,15 +106,42 @@ const InteractiveMap = () => {
         window.addEventListener('mouseup', handleDragEnd);
     };
 
+    const handleMouseEnter = () => {
+        document.body.style.cursor = 'grab'; // Set cursor to grab on mouse enter
+    };
+
+    const handleMouseLeave = () => {
+        document.body.style.cursor = 'default'; // Reset cursor on mouse leave
+    };
+
+    const handleCountryMouseEnter = (event, countryName, countryStats) => {
+        setHoveredCountry(countryName);
+        const osType = Object.entries(countryStats.osTypes).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
+        const deviceType = Object.entries(countryStats.deviceTypes).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
+        setTooltipData({ osType, deviceType, count: countryStats.count });
+
+        // Calculate tooltip position
+        const tooltipWidth = tooltipRef.current ? tooltipRef.current.offsetWidth : 0;
+        const tooltipHeight = tooltipRef.current ? tooltipRef.current.offsetHeight : 0;
+
+        // Adjust position
+        setTooltipPosition({
+            x: event.clientX + 10, // 10px to the right of the cursor
+            y: event.clientY - tooltipHeight / 2 // Centered vertically relative to the cursor
+        });
+    };
+
     return (
         <div className="container mx-auto my-8">
-            <div className="mt-8 w-full bg-white shadow-md rounded-lg p-4 relative ">
+            <div className="mt-8 w-full bg-white shadow-md rounded-lg p-2 relative">
                 <svg
                     ref={svgRef}
                     width="100%"
-                    height={400}
-                    style={{ backgroundColor: '#f0f0f0' }}
+                    height="600px"
+                    style={{ backgroundColor: '#f0f0f0' }} // No cursor style here
                     onMouseDown={handleDragStart}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                 >
                     <g transform={`translate(${translate[0]}, ${translate[1]}) scale(${scale})`}>
                         <ComposableMap projection={projection}>
@@ -127,7 +157,7 @@ const InteractiveMap = () => {
                                             <Geography
                                                 key={geo.rsmKey}
                                                 geography={geo}
-                                                fill={scanCount > 0 ? colorScale(scanCount) : "#eeeeee"}
+                                                fill={scanCount > 0 ? "#2e7d32" : "#eeeeee"} // Fill green for countries with scans
                                                 stroke="#000"
                                                 strokeWidth={0.5}
                                                 style={{
@@ -135,13 +165,7 @@ const InteractiveMap = () => {
                                                     hover: { fill: "#2e7d32", transition: "all 0.3s" },
                                                     pressed: { outline: "none" }
                                                 }}
-                                                onMouseEnter={(event) => {
-                                                    setHoveredCountry(countryName);
-                                                    setTooltipPosition({ x: event.clientX, y: event.clientY });
-                                                    const osType = Object.entries(countryStats.osTypes).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
-                                                    const deviceType = Object.entries(countryStats.deviceTypes).reduce((a, b) => b[1] > a[1] ? b : a, ["", 0])[0];
-                                                    setTooltipData({ osType, deviceType, count: scanCount });
-                                                }}
+                                                onMouseEnter={(event) => handleCountryMouseEnter(event, countryName, countryStats)}
                                                 onMouseLeave={() => {
                                                     setHoveredCountry(null);
                                                     setTooltipData({ osType: '', deviceType: '', count: 0 });
@@ -156,6 +180,7 @@ const InteractiveMap = () => {
                 </svg>
                 {hoveredCountry && (
                     <CustomTooltip
+                        ref={tooltipRef} // Reference to the tooltip
                         country={hoveredCountry}
                         count={tooltipData.count}
                         osType={tooltipData.osType}
@@ -182,11 +207,11 @@ const InteractiveMap = () => {
     );
 };
 
-const CustomTooltip = ({ country, count, osType, deviceType, position }) => (
-    <div className="tooltip" style={{
+const CustomTooltip = React.forwardRef(({ country, count, osType, deviceType, position }, ref) => (
+    <div ref={ref} className="tooltip" style={{
         position: 'absolute',
-        left: position.x + 10,
-        top: position.y + 10,
+        left: position.x,
+        top: position.y,
         pointerEvents: 'none',
         backgroundColor: 'white',
         border: '1px solid #ccc',
@@ -202,6 +227,6 @@ const CustomTooltip = ({ country, count, osType, deviceType, position }) => (
         {osType && <p style={{ margin: '5px 0' }}>OS: {osType}</p>}
         {deviceType && <p style={{ margin: '5px 0' }}>Device: {deviceType}</p>}
     </div>
-);
+));
 
 export default InteractiveMap;

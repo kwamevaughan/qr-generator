@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaTrash, FaChartPie } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import DownloadButton from './DownloadButton';
 import { supabase } from "../../lib/supabaseClient";
+import { toast } from 'react-toastify';
 
 const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnalytics, downloadQRCode, openAnalyticsModal }) => {
     const [newUrl, setNewUrl] = useState('');
@@ -18,8 +19,10 @@ const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnal
             if (error) throw error;
 
             setQrHistory((prev) => prev.filter(qr => qr.id !== qrCodeId));
+            toast.success('QR code deleted successfully!', { position: 'top-center' });
         } catch (error) {
             console.error('Error deleting QR code:', error);
+            toast.error('Error deleting QR code: ' + error.message, { position: 'top-center' });
         }
     };
 
@@ -39,8 +42,10 @@ const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnal
             );
             setEditQrId(null);
             setNewUrl('');
+            toast.success('QR code updated successfully!', { position: 'top-center' });
         } catch (error) {
             console.error('Error updating QR code:', error);
+            toast.error('Error updating QR code: ' + error.message, { position: 'top-center' });
         }
     };
 
@@ -113,7 +118,7 @@ const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnal
                                 alt="QR Code"
                                 width={48}
                                 height={48}
-                                onClick={() => openModal(qr.qr_code_data)} // Make sure this is correct
+                                onClick={() => openModal(qr.qr_code_data)}
                                 className="cursor-pointer"
                             />
                         </td>
@@ -127,14 +132,15 @@ const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnal
                             <Image
                                 onClick={() => {
                                     console.log(`Clicked on QR ID: ${qr.id}`);
-                                    openAnalyticsModal(qr.id); // This should work now
+                                    openAnalyticsModal(qr.id);
                                 }}
                                 className="cursor-pointer text-blue-500"
                                 title="View Scan Analytics"
                                 width={100}
                                 height="50"
-                             alt={"analytics"} src={"/assets/images/analytics.jpg"}/>
-
+                                alt="analytics"
+                                src="/assets/images/analytics.jpg"
+                            />
                         </td>
                     </tr>
                 ))}
