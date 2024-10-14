@@ -207,26 +207,29 @@ const InteractiveMap = () => {
     );
 };
 
-const CustomTooltip = React.forwardRef(({ country, count, osType, deviceType, position }, ref) => (
-    <div ref={ref} className="tooltip" style={{
-        position: 'absolute',
-        left: position.x,
-        top: position.y,
-        pointerEvents: 'none',
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-        padding: '8px',
-        borderRadius: '5px',
-        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-        zIndex: 1000,
-        transition: 'opacity 0.3s ease',
-        opacity: 0.9,
-    }}>
-        <h4 style={{ margin: 0 }}>{country}</h4>
-        <p style={{ margin: '5px 0' }}>Scans: {count}</p>
-        {osType && <p style={{ margin: '5px 0' }}>OS: {osType}</p>}
-        {deviceType && <p style={{ margin: '5px 0' }}>Device: {deviceType}</p>}
-    </div>
-));
+const CustomTooltip = React.forwardRef(function CustomTooltip({ country, count, osType, deviceType, position }, ref) {
+    return (
+        <div ref={ref} className="tooltip" style={{
+            position: 'absolute',
+            left: position.x,
+            top: position.y,
+            pointerEvents: 'none',
+            backgroundColor: 'white',
+            border: '1px solid #ccc',
+            padding: '8px',
+            borderRadius: '5px',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+            zIndex: 1000,
+            transition: 'opacity 0.3s ease',
+            opacity: 0.9,
+        }}>
+            <h4 style={{ margin: 0 }}>{country}</h4>
+            <p style={{ margin: '5px 0' }}>Scans: {count}</p>
+            {osType && <p style={{ margin: '5px 0' }}>OS: {osType}</p>}
+            {deviceType && <p style={{ margin: '5px 0' }}>Device: {deviceType}</p>}
+        </div>
+    );
+});
+
 
 export default InteractiveMap;
