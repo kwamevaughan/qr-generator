@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Modal = ({ isOpen, onClose, children }) => {
+    const [showChildren, setShowChildren] = useState(false);
+
     // Close the modal when the Escape key is pressed
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -10,15 +12,18 @@ const Modal = ({ isOpen, onClose, children }) => {
         };
 
         const handleClickOutside = (event) => {
-            const modalContent = document.querySelector('.modal-content'); // Ensure this matches your modal content class
+            const modalContent = document.querySelector('.modal-content');
             if (modalContent && !modalContent.contains(event.target)) {
                 onClose();
             }
         };
 
         if (isOpen) {
+            setShowChildren(true);
             window.addEventListener('keydown', handleKeyDown);
             window.addEventListener('mousedown', handleClickOutside);
+        } else {
+            setShowChildren(false);
         }
 
         return () => {
@@ -27,7 +32,15 @@ const Modal = ({ isOpen, onClose, children }) => {
         };
     }, [isOpen, onClose]);
 
-    if (!isOpen) return null; // If modal is not open, render nothing
+    // Use effect to manage visibility of children
+    useEffect(() => {
+        if (!isOpen) {
+            const timeout = setTimeout(() => setShowChildren(false), 300); // Match with duration
+            return () => clearTimeout(timeout);
+        }
+    }, [isOpen]);
+
+    if (!isOpen && !showChildren) return null; // If modal is not open, render nothing
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -39,7 +52,11 @@ const Modal = ({ isOpen, onClose, children }) => {
                 >
                     &times; {/* Close button */}
                 </button>
-                {children} {/* Render children inside the modal */}
+                <div
+                    className={`transition-opacity duration-500 ease-in-out transform ${showChildren ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                >
+                    {children} {/* Render children inside the modal */}
+                </div>
             </div>
         </div>
     );
