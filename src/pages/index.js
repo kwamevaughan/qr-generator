@@ -52,12 +52,14 @@ export default function Login() {
                  backgroundRepeat: 'no-repeat',
              }}>
             <Image
-                src="/assets/images/logo-full.png"
+                src="/assets/images/logo-full.png" // Ensure this path is correct
                 alt="Logo"
                 width={200}
                 height={75}
                 className="block md:absolute top-0 left-0 md:m-5 md:top-5 md:left-5 mt-10 mb-10 md:mt-0 md:mb-0"
+                priority // Optional: Use priority for important images
             />
+
             <div className="w-full max-w-md mb-8">
                 <GuestQRCodeGenerator mode="light"
                                       onQrCodeGenerated={(url) => console.log("QR Code generated for URL:", url)}/>
