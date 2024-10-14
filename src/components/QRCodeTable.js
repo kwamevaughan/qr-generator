@@ -49,12 +49,12 @@ const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnal
             <table className="w-full border-collapse border border-gray-200">
                 <thead>
                 <tr>
-                    <th className="border border-gray-200 p-2 text-center">Folder</th>
+                    <th className="border border-gray-200 p-2 text-center">Group</th>
                     <th className="border border-gray-200 p-2 text-center">URL</th>
                     <th className="border border-gray-200 p-2 text-center">Created</th>
                     <th className="border border-gray-200 p-2 text-center">QR Code</th>
                     <th className="border border-gray-200 p-2 text-center">Download</th>
-                    <th className="border border-gray-200 p-2 text-center">View Scan Analytics</th>
+                    <th className="border border-gray-200 p-2 text-center">Analytics</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -124,15 +124,16 @@ const QrCodeTable = ({ filteredQrHistory, setQrHistory, openModal, fetchScanAnal
                             />
                         </td>
                         <td className="border border-gray-200 p-2 text-center">
-                            <FaChartPie
+                            <Image
                                 onClick={() => {
                                     console.log(`Clicked on QR ID: ${qr.id}`);
                                     openAnalyticsModal(qr.id); // This should work now
                                 }}
                                 className="cursor-pointer text-blue-500"
                                 title="View Scan Analytics"
-                                size={24}
-                            />
+                                width={100}
+                                height="50"
+                             alt={"analytics"} src={"/assets/images/analytics.jpg"}/>
 
                         </td>
                     </tr>

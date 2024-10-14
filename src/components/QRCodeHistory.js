@@ -7,17 +7,17 @@ import QRCode from 'qrcode';
 import Modal from "@/components/Modal";
 import AnalyticsModal from './AnalyticsModal';
 import DatePicker from './DatePicker';
-import QrCodeList from './QrCodeList';
 import { Bar } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
 import { FaChartPie, FaChartBar, FaMobileAlt, FaDesktop, FaWifi, FaGlobeAmericas, FaWindows, FaApple, FaLinux, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import DownloadButton from "@/components/DownloadButton";
+import QRCodeTable from "@/components/QRCodeTable";
 
 Chart.register(...registerables);
 
-export default function QRCodeHistory({ userId }) {
+export default function QRCodeHistory({ userId, mode }) {
     const [selectedQrCode, setSelectedQrCode] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [analyticsModalOpen, setAnalyticsModalOpen] = useState(false);
@@ -60,12 +60,6 @@ export default function QRCodeHistory({ userId }) {
         fetchScanAnalytics(qrCodeId);
         setAnalyticsModalOpen(true);
     };
-
-
-
-
-
-
 
     const filterAnalyticsByDate = () => {
         if (dateRange.startDate && dateRange.endDate) {
@@ -155,7 +149,6 @@ export default function QRCodeHistory({ userId }) {
     };
 
 
-
     useEffect(() => {
         const fetchQrHistory = async () => {
             if (!userId) return;
@@ -199,7 +192,6 @@ export default function QRCodeHistory({ userId }) {
     };
 
 
-
     const downloadQRCode = async (qrCodeData, format) => {
         try {
             if (format === 'png') {
@@ -223,7 +215,8 @@ export default function QRCodeHistory({ userId }) {
     const uniqueFolders = [...new Set(qrHistory.map(qr => qr.folder))];
 
     return (
-        <div className="mt-8 w-full max-w-4xl bg-white shadow-md rounded-lg p-8">
+        <div
+            className={`mt-8 w-full max-w-4xl shadow-md rounded-lg p-8 ${mode === 'dark' ? 'bg-[#1a1a2e] text-white' : 'bg-white text-black'}`}>
             <h2 className="text-lg font-bold text-center mb-4">QR Code History</h2>
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">Filter by Folder:</label>
@@ -239,7 +232,8 @@ export default function QRCodeHistory({ userId }) {
                 </select>
             </div>
 
-            <QrCodeList
+
+            <QRCodeTable
                 filteredQrHistory={filteredQrHistory}
                 setQrHistory={setQrHistory}
                 openModal={openModal}
@@ -247,9 +241,6 @@ export default function QRCodeHistory({ userId }) {
                 downloadQRCode={downloadQRCode}
                 openAnalyticsModal={openAnalyticsModal} // Ensure this line is included
             />
-
-
-
 
             {/* Modal for Scan Analytics */}
             <AnalyticsModal
@@ -279,12 +270,6 @@ export default function QRCodeHistory({ userId }) {
                     </div>
                 </Modal>
             )}
-
-
-
-
-
-
 
         </div>
     );

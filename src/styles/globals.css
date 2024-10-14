@@ -1,12 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 body {
     transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: #eff1f9; /* Default background color */
+    color: black; /* Default text color */
 }
 
+/* Light mode styles */
+.light-mode {
+    background-color: white;
+    color: black;
+}
 
-/* styles/globals.css */
+/* Dark mode styles */
+.dark-mode {
+    background-color: #1a1a1a; /* Dark background */
+    color: white; /* Light text */
+}
+
+/* Modal styles */
 .modal-overlay {
     position: fixed;
     top: 0;
